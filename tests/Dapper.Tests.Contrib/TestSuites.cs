@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.Sqlite;
+﻿using ClickHouse.Client.ADO;
+using Microsoft.Data.Sqlite;
 using MySqlConnector;
 using System;
 using System.Data;
@@ -141,6 +142,56 @@ namespace Dapper.Tests.Contrib
         }
     }
 
+    public class ClickHouseTestSuite : TestSuite
+    {
+        public static string ConnectionString { get; } = GetConnectionString("ClickHouseConnectionString", "Server=localhost;Database=default;Username=default");
+
+        public override IDbConnection GetConnection()
+        {
+            if (_skip) Skip.Inconclusive("Skipping ClickHouse Tests - no server.");
+            return new ClickHouseConnection(ConnectionString);
+        }
+
+        private static readonly bool _skip;
+
+        static ClickHouseTestSuite()
+        {
+            try
+            {
+                using var connection = new ClickHouseConnection(ConnectionString);
+                // ReSharper disable once AccessToDisposedClosure
+                void dropTable(string name) => connection.Execute($"DROP TABLE IF EXISTS `{name}`;");
+                connection.Open();
+                dropTable("Stuff");
+                connection.Execute("CREATE TABLE Stuff (TheId int not null AUTO_INCREMENT PRIMARY KEY, Name nvarchar(100) not null, Created DateTime null);");
+                dropTable("People");
+                connection.Execute("CREATE TABLE People (Id int not null AUTO_INCREMENT PRIMARY KEY, Name nvarchar(100) not null);");
+                dropTable("Users");
+                connection.Execute("CREATE TABLE Users (Id int not null AUTO_INCREMENT PRIMARY KEY, Name nvarchar(100) not null, Age int not null);");
+                dropTable("Automobiles");
+                connection.Execute("CREATE TABLE Automobiles (Id int not null AUTO_INCREMENT PRIMARY KEY, Name nvarchar(100) not null);");
+                dropTable("Results");
+                connection.Execute("CREATE TABLE Results (Id int not null AUTO_INCREMENT PRIMARY KEY, Name nvarchar(100) not null, `Order` int not null);");
+                dropTable("ObjectX");
+                connection.Execute("CREATE TABLE ObjectX (ObjectXId nvarchar(100) not null, Name nvarchar(100) not null);");
+                dropTable("ObjectY");
+                connection.Execute("CREATE TABLE ObjectY (ObjectYId int not null, Name nvarchar(100) not null);");
+                dropTable("ObjectZ");
+                connection.Execute("CREATE TABLE ObjectZ (Id int not null, Name nvarchar(100) not null);");
+                dropTable("GenericType");
+                connection.Execute("CREATE TABLE GenericType (Id nvarchar(100) not null, Name nvarchar(100) not null);");
+                dropTable("NullableDates");
+                connection.Execute("CREATE TABLE NullableDates (Id int not null AUTO_INCREMENT PRIMARY KEY, DateValue DateTime);");
+            }
+            catch (Exception e)
+            {
+                if (e.Message.Contains("refused"))
+                    _skip = true;
+                else
+                    throw;
+            }
+        }
+    }
 
 #if SQLCE
     public class SqlCETestSuite : TestSuite

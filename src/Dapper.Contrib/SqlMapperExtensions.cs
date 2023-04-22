@@ -7,6 +7,7 @@ using System.Text;
 using System.Collections.Concurrent;
 using System.Reflection.Emit;
 using System.Threading;
+using System.Threading.Tasks;
 
 using Dapper;
 
@@ -68,7 +69,8 @@ namespace Dapper.Contrib.Extensions
                 ["npgsqlconnection"] = new PostgresAdapter(),
                 ["sqliteconnection"] = new SQLiteAdapter(),
                 ["mysqlconnection"] = new MySqlAdapter(),
-                ["fbconnection"] = new FbAdapter()
+                ["fbconnection"] = new FbAdapter(),
+                ["clickhouseconnection"] = new ClickHouseAdapter(),
             };
 
         private static List<PropertyInfo> ComputedPropertiesCache(Type type)
@@ -697,6 +699,20 @@ namespace Dapper.Contrib.Extensions
                 typeBuilder.DefineMethodOverride(currGetPropMthdBldr, getMethod);
                 typeBuilder.DefineMethodOverride(currSetPropMthdBldr, setMethod);
             }
+        }
+    }
+
+    public partial class ClickHouseAdapter : ISqlAdapter
+    {
+        public void AppendColumnName(StringBuilder sb, string columnName) => throw new NotImplementedException();
+        
+        public void AppendColumnNameEqualsValue(StringBuilder sb, string columnName) => throw new NotImplementedException();
+        
+        public int Insert(IDbConnection connection, IDbTransaction transaction, int? commandTimeout, string tableName, string columnList, string parameterList, IEnumerable<PropertyInfo> keyProperties, object entityToInsert) => throw new NotImplementedException();
+        
+        public Task<int> InsertAsync(IDbConnection connection, IDbTransaction transaction, int? commandTimeout, string tableName, string columnList, string parameterList, IEnumerable<PropertyInfo> keyProperties, object entityToInsert)
+        {
+            throw new NotImplementedException();
         }
     }
 
